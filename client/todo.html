@@ -35,12 +35,13 @@
       <div class="task">
         <div class="row">
           <div class="panel panel-info col-md-6" v-for="task in filterTasks">
+          <!-- <div class="panel panel-info col-md-6" v-for="task in tasks"> -->
             <div class="panel-heading"> {{ task.taskname }} </div>
             <div class="panel-description">
-            <!-- disini jadi tempat modal e -->
-            <button type="button" class="btn btn-link btn-sm" data-toggle="modal" data-target="#myModal">Edit</button>
+            <!-- disini jadi tempat modal EDITING e -->
+            <button type="button" class="btn btn-link btn-sm" data-toggle="modal" :data-target="'#myModal'+task._id">Edit</button>
             <!-- modal -->
-            <div id="myModal" class="modal fade" role="dialog">
+            <div :id="'myModal'+task._id" class="modal fade" role="dialog">
               <div class="modal-dialog">
                 <!-- modal content e -->
                 <div class="modal-content">
@@ -53,7 +54,8 @@
                       <div class="form-group">
                         <label class="control-label col-md-6">Task:</label>
                         <input type="text" v-model="taskname" class="form-control" placeholder="new task">
-                        <button type="button" class="btn" @click="updateTask(task._id)" data-dismiss="modal">submit</button>
+                        <!-- <button type="button" class="btn" @click="updateTask(task._id)" data-dismiss="modal">submit</button> -->
+                          <button type="button" class="btn" @click="updateTask(task._id, idx)" data-dismiss="modal">submit</button>
                       </div>
                     </form>
                   </div>
@@ -65,7 +67,7 @@
             </div>
 <!-- modal edit end -->
 
-            <a v-on:click="deleteTask(task._id)" class="btn-floating waves-effect waves-light red" style="margin-left: 8px"><i class="material-icons">delete</i></a>
+            <a v-on:click="deleteTask(task._id, idx)" class="btn-floating waves-effect waves-light red" style="margin-left: 8px"><i class="material-icons">delete</i></a>
             </div>
             <div class="panel-footer"> Tags: {{ task.tags }} </div>
           </div>
@@ -95,11 +97,17 @@
           })
         },
         data: {
+          idx: '',
           tasks: [],
           search: '',
           tags: '',
           taskname: '',
           token: localStorage.getItem("tokenuser")
+          // editedObject: {
+          //   _id: '',
+          //   taskname: '',
+          //   tags: ''
+          // }
         },
         computed: {
           filterTasks: function() {
@@ -122,18 +130,47 @@
               console.log(err);
             })
           },
-          deleteTask: function(id) {
+          deleteTask: function(id, idx) {
             let self = this;
+            if(window.confirm('Deleting this? ( this cant be return)')) {
             axios.delete(`http://localhost:3000/task/${id}`)
             .then( response => console.log(response))
+            this.tasks.splice(this.tasks.indexOf(idx), 1);
+            // router push have nothing todo with auto render
+            }
           },
-          updateTask: function(id) {
-            let self = this;
+          updateTask: function(id, idx) {
+            console.log('id nya')
+            let self = this
             axios.put(`http://localhost:3000/task/${id}`, {
               taskname: self.taskname
             })
-            .then(response => console.log(response))
+            .then(response => {
+              console.log(response)
+              this.tasks.splice(idx, 1, response.data.taskname);
+              // this.tasks.forEach(task => {
+              //   if(task._id == ) {
+              //     task.taskname = response.data.taskname
+              //   }
+              // })
+            })
           }
+          // ,
+
+          // editTask: function(){
+          //   let self = this
+          //   axios.put(`http://localhost:3000/task/${this.editedObject._id}`, {
+          //     taskname: this.editedObject.taskname
+          //   })
+          //   .then({response})=> {
+          //     this.tasks.forEach((task, i) => {
+          //       if(task._id == this.editedObject._id) {
+          //         task.taskname = this.editedObject.taskname
+          //       }
+          //     })
+          //   }
+          // }
+
         }
       })
 
